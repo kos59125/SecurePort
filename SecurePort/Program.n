@@ -1,0 +1,30 @@
+﻿using System;
+
+using System.IO.File;
+using System.Windows.Forms.Application;
+
+namespace RecycleBin.SecurePort
+{
+   module Program
+   {
+      [STAThread]
+      Main(args : array[string]) : void
+      {
+         EnableVisualStyles();
+         SetCompatibleTextRenderingDefault(false);
+         using (controller = Controller())
+         {
+            controller.Visible = true;
+            when (args.Length > 0)
+            {
+               def path = args[0];
+               when (Exists(path))
+               {
+                  controller.Load(args[0]);
+               }
+            }
+            Run();
+         }
+      }
+   }
+}

@@ -1,0 +1,29 @@
+﻿using System.Net;
+using Nemerle.Collections;
+using NUnit.Framework;
+
+namespace RecycleBin.SecurePort
+{
+   [TestFixture]
+   public class ForwardingEndPointTest
+   {
+      [Test]
+      public TestLocalForwardingEndPoint([Values(0us, 80us, 8080us, 50000us, ushort.MaxValue : ushort)] port : ushort) : void
+      {
+         def endPoint = LocalForwardingEndPoint(port);
+         def hostIP = IPAddress.Parse(endPoint.Host);
+         Assert.That(IPAddress.IsLoopback(hostIP), Is.True);
+         Assert.That(endPoint.Port, Is.EqualTo(port));
+      }
+      
+      [Test]
+      public TestRemoteForwardingEndPoint([Values(0us, 80us, 8080us, 50000us, ushort.MaxValue : ushort)] port : ushort) : void
+      {
+         def host = "example.com";
+         def endPoint = RemoteForwardingEndPoint(host, port);
+         Assert.That(endPoint.Host, Is.EqualTo(host));
+         Assert.That(endPoint.RemoteHost, Is.EqualTo(host));
+         Assert.That(endPoint.Port, Is.EqualTo(port));
+      }
+   }
+}

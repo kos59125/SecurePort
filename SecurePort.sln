@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{EDCC3B85-0BAD-11DB-BC1A-00112FDE8B61}") = "SecurePort", "SecurePort\SecurePort.nproj", "{0228A67C-84AC-4E4A-AEF3-97149692A4F0}"
+EndProject
+Project("{EDCC3B85-0BAD-11DB-BC1A-00112FDE8B61}") = "SecurePort.Tests", "SecurePort.Tests\SecurePort.Tests.nproj", "{9215203F-CBD4-43D5-80B4-F9DD1B267FEB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0228A67C-84AC-4E4A-AEF3-97149692A4F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0228A67C-84AC-4E4A-AEF3-97149692A4F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0228A67C-84AC-4E4A-AEF3-97149692A4F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0228A67C-84AC-4E4A-AEF3-97149692A4F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9215203F-CBD4-43D5-80B4-F9DD1B267FEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9215203F-CBD4-43D5-80B4-F9DD1B267FEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9215203F-CBD4-43D5-80B4-F9DD1B267FEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9215203F-CBD4-43D5-80B4-F9DD1B267FEB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

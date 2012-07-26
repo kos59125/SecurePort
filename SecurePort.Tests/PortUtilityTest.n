@@ -1,0 +1,75 @@
+﻿using System.Linq;
+using Nemerle.Collections;
+using NUnit.Framework;
+
+using RecycleBin.SecurePort.PortType;
+using RecycleBin.SecurePort.PortUtility;
+
+namespace RecycleBin.SecurePort
+{
+   [TestFixture]
+   public class PortUtilityTest
+   {
+      [Test]
+      [Description("GetPortNumbers(WellKnow) ⊆ $[0..1023]")]
+      public TestGetFreeTcpPortNumbersWellKnown() : void
+      {
+         def actual = GetPortNumbers(WellKnown);
+         def expected = $[0..1023];
+         Assert.That(actual.Count(), Is.LessThanOrEqualTo(expected.Length));
+         Assert.That(actual.Exists(port => !expected.Contains(port)), Is.False);
+      }
+      
+      [Test]
+      [Description("GetPortNumbers(WellKnow) ⊆ $[1024..49151]")]
+      public TestGetFreeTcpPortNumbersRegistered() : void
+      {
+         def actual = GetPortNumbers(Registered);
+         def expected = $[1024..49151];
+         Assert.That(actual.Count(), Is.LessThanOrEqualTo(expected.Length));
+         Assert.That(actual.Exists(port => !expected.Contains(port)), Is.False);
+      }
+      
+      [Test]
+      [Description("GetPortNumbers(Dynamic) ⊆ $[49152..65535]")]
+      public TestGetFreeTcpPortNumbersDynamic() : void
+      {
+         def actual = GetPortNumbers(Dynamic);
+         def expected = $[49152..65535];
+         Assert.That(actual.Count(), Is.LessThanOrEqualTo(expected.Length));
+         Assert.That(actual.Exists(port => !expected.Contains(port)), Is.False);
+      }
+      
+      [Test]
+      public TestGetPortNumbersWellKnown() : void
+      {
+         def actual = GetPortNumbers(WellKnown);
+         def expected = $[0..1023];
+         Assert.That(actual, Is.EquivalentTo(expected));
+      }
+      
+      [Test]
+      public TestGetPortNumbersRegistered() : void
+      {
+         def actual = GetPortNumbers(Registered);
+         def expected = $[1024..49151];
+         Assert.That(actual, Is.EquivalentTo(expected));
+      }
+      
+      [Test]
+      public TestGetPortNumbersDynamic() : void
+      {
+         def actual = GetPortNumbers(Dynamic);
+         def expected = $[49152..65535];
+         Assert.That(actual, Is.EquivalentTo(expected));
+      }
+      
+      [Test]
+      public TestGetPortNumbersWithoutRegistered() : void
+      {
+         def actual = GetPortNumbers(WellKnown | Dynamic);
+         def expected = $[0..1023] + $[49152..65535];
+         Assert.That(actual, Is.EquivalentTo(expected));
+      }
+   }
+}

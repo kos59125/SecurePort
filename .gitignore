@@ -1,0 +1,10 @@
+bin/
+obj/
+*.suo
+*.VisualState.xml
+TestResult.xml
+
+/packages/SSH.NET.2012.3.9/lib/net35/
+/packages/SSH.NET.2012.3.9/lib/sl4-wp71/
+/packages/SSH.NET.2012.3.9/lib/sl40/
+

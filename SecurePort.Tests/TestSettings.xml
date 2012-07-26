@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<SshSettings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   <LoginName>user</LoginName>
+   <Host>ssh.example.com</Host>
+   <Port>22</Port>
+   <KeyFile>X:\Path\To\PrivateKeyFile.pem</KeyFile>
+   <ForwardingPorts>
+      <PortforwardInfo xsi:type="LocalPortforwardInfo">
+         <LocalListen xsi:type="LocalForwardingEndPoint">
+            <Port>1234</Port>
+         </LocalListen>
+         <Destination xsi:type="RemoteForwardingEndPoint">
+            <Port>8888</Port>
+            <RemoteHost>localhost</RemoteHost>
+         </Destination>
+      </PortforwardInfo>
+      <PortforwardInfo xsi:type="DynamicPortforwardInfo">
+         <LocalListen xsi:type="LocalForwardingEndPoint">
+            <Port>18080</Port>
+         </LocalListen>
+      </PortforwardInfo>
+      <PortforwardInfo xsi:type="RemotePortforwardInfo">
+         <RemoteListen xsi:type="LocalForwardingEndPoint">
+            <Port>3125</Port>
+         </RemoteListen>
+         <Destination xsi:type="RemoteForwardingEndPoint">
+            <Port>80</Port>
+            <RemoteHost>www.example.com</RemoteHost>
+         </Destination>
+      </PortforwardInfo>
+   </ForwardingPorts>
+</SshSettings>

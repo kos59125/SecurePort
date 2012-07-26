@@ -1,0 +1,253 @@
+﻿using System;
+using System.ComponentModel;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Nemerle.Assertions;
+using Nemerle.Collections;
+using Nemerle.Extensions;
+using Renci.SshNet;
+
+using System.IO.File;
+using System.Reflection.Assembly;
+using System.Windows.Forms.Application;
+
+namespace RecycleBin.SecurePort
+{
+   /// <summary>
+   /// Handles application actions.
+   /// </summary>
+   public class Controller : Container
+   {
+      private static BalloonShowTime : int = 2000;
+      
+      private icon : NotifyIcon;
+      private mutable client : SshClient;
+      
+      public this()
+      {
+         this.icon = CreateIcon();
+         Add(this.icon);
+      }
+      
+      /// <summary>
+      /// Gets or sets the visibility of the tasktray icon.
+      /// </summary>
+      public Visible : bool
+      {
+         get { this.icon.Visible; }
+         set { this.icon.Visible = value; }
+      }
+      
+      /// <summary>
+      /// Loads settings from the specified file.
+      /// </summary>
+      /// <param name="path">The file path.</param>
+      public Load([NotNull] path : string) : void
+      {
+         try
+         {
+            def settings = SshSettings.LoadFromFile(path);
+            Load(settings);
+         }
+         catch
+         {
+            | ex is _ => ShowError(ex);
+         }
+      }
+      
+      /// <summary>
+      /// Loads settings.
+      /// </summary>
+      /// <param name="settings">The settings.</param>
+      public Load([NotNull] settings : SshSettings) : void
+      {
+         CreateConnectionTask(settings).Start();
+      }
+      
+      /// <summary>
+      /// Pops-up the current connection information.
+      /// </summary>
+      public ShowConnectingInfo(title : string = "Connection Info") : void
+      {
+         match (this.client == null || !this.client.IsConnected)
+         {
+            | true => {
+               this.icon.ShowBalloonTip(BalloonShowTime, "Not Connected", "No connection is established.", ToolTipIcon.Info);
+            }
+            | false => {
+               def message = BuildForwardingMessage(this.client);
+               this.icon.ShowBalloonTip(BalloonShowTime, title, message, ToolTipIcon.Info);
+            }
+         }
+      }
+      
+      private CreateIcon() : NotifyIcon
+      {
+         NotifyIcon() <- {
+            Icon = GetEntryAssemblyIcon();
+            ContextMenuStrip = CreateContextMenuStrip();
+         };
+      }
+      
+      private static GetEntryAssemblyIcon() : Icon
+      {
+         Icon.ExtractAssociatedIcon(GetEntryAssembly().Location);
+      }
+      
+      private CreateContextMenuStrip() : ContextMenuStrip
+      {
+         ContextMenuStrip() <- {
+            Items <- [
+               ToolStripMenuItem("Load...") <- {
+                  Click += (_, _) =>
+                  {
+                     match (LoadSettingsFile())
+                     {
+                        | Some(settings) => Load(settings);
+                        | _ => ();
+                     }
+                  }
+               },
+               ToolStripMenuItem("Information") <- {
+                  Click += (_, _) => ShowConnectingInfo();
+               },
+               ToolStripSeparator(),
+               ToolStripMenuItem("Exit") <- {
+                  Click += (_, _) => Exit();
+               }
+            ];
+         };
+      }
+      
+      private LoadSettingsFile() : option[SshSettings]
+      {
+         def dialog = OpenFileDialog() <- {
+            CheckFileExists = true;
+         };
+         match (dialog.ShowDialog())
+         {
+            | OK => {
+               try
+               {
+                  Some(SshSettings.LoadFromFile(dialog.FileName));
+               }
+               catch
+               {
+                  | ex is _ => {
+                     ShowError(ex);
+                     None();
+                  }
+               }
+            }
+            | _ => None();
+         }
+      }
+      
+      private CreateConnectionTask(settings : SshSettings) : Task
+      {
+         Task(
+            () =>
+            {
+               DisposeSshClient();
+               try
+               {
+                  def key = PrivateKeyFile(settings.KeyFile);
+                  def connection = PrivateKeyConnectionInfo(settings.Host, settings.Port, settings.LoginName, key);
+                  this.client = SshClient(connection);
+                  def sshAddress = string.Format("ssh://{0}@{1}:{2}", connection.Username, connection.Host, connection.Port);
+                  this.icon.ShowBalloonTip(BalloonShowTime, "Attempting to Connect Host", sshAddress, ToolTipIcon.Info);
+                  this.client.Connect();
+                  foreach (info in settings.ForwardingPorts)
+                  {
+                     def forward  : ForwardedPort = match (info)
+                     {
+                        | local is LocalPortforwardInfo => {
+                           def listen = local.LocalListen;
+                           def destination = local.Destination;
+                           ForwardedPortLocal(listen.Host, listen.Port, destination.Host, destination.Port);
+                        }
+                        | remote is RemotePortforwardInfo => {
+                           def listen = remote.RemoteListen;
+                           def destination = remote.Destination;
+                           ForwardedPortRemote(listen.Host, listen.Port, destination.Host, destination.Port);
+                        }
+                        | dynamic is DynamicPortforwardInfo => {
+                           def listen = dynamic.LocalListen;
+                           ForwardedPortDynamic(listen.Host, listen.Port);
+                        }
+                        | _ => throw AssertionException();
+                     }
+                     this.client.AddForwardedPort(forward);
+                     forward.Start();
+                  }
+                  ShowConnectingInfo("Connection Established");
+               }
+               catch
+               {
+                  | ex is _ => ShowError(ex);
+               }
+            }
+         );
+      }
+      
+      private static BuildForwardingMessage(client : SshClient) : string
+      {
+         def message = StringBuilder();
+         def connection = client.ConnectionInfo;
+         _ = message.AppendFormat("ssh://{0}@{1}:{2}", connection.Username, connection.Host, connection.Port);
+         client.ForwardedPorts.ToLookup(p => p.GetType()).Iter(
+            grouping =>
+            {
+               _ = message.AppendLine().Append(match (grouping.Key.Name)
+               {
+                  | "ForwardedPortLocal" => "Local";
+                  | "ForwardedPortRemote" => "Remote";
+                  | "ForwardedPortDynamic" => "Dynamic";
+                  | _ => "Unknown";
+               });
+               foreach (forward in grouping)
+               {
+                  _ = message.AppendLine();
+                  _ = match (forward)
+                  {
+                     | p is ForwardedPortLocal => message.AppendFormat("* {0}:{1} --> {2}:{3}", p.BoundHost, p.BoundPort, p.Host, p.Port);
+                     | p is ForwardedPortRemote => message.AppendFormat("* {0}:{1} <-- {2}:{3}", p.BoundHost, p.BoundPort, p.Host, p.Port);
+                     | p is ForwardedPortDynamic => message.AppendFormat("* {0}:{1}", p.BoundHost, p.BoundPort);
+                     | _ => message;
+                  }
+               }
+            }
+         );
+         message.ToString();
+      }
+      
+      private ShowError(exeption : Exception) : void
+      {
+         this.icon.ShowBalloonTip(BalloonShowTime, "Error", exeption.Message, ToolTipIcon.Error);
+      }
+      
+      protected override Dispose(disposing : bool) : void
+      {
+         base.Dispose(disposing);
+         DisposeSshClient();
+      }
+      
+      private DisposeSshClient() : void
+      {
+         when (this.client != null)
+         {
+            try
+            {
+               this.client.Disconnect();
+            }
+            finally
+            {
+               this.client.Dispose();
+            }
+         }
+      }
+   }
+}

@@ -1,0 +1,9 @@
+<NUnitProject>
+  <Settings activeconfig="Debug" processModel="Default" domainUsage="Default" />
+  <Config name="Debug" binpathtype="Auto">
+    <assembly path="SecurePort.Tests/bin/Debug/SecurePort.Tests.dll" />
+  </Config>
+  <Config name="Release" binpathtype="Auto">
+    <assembly path="SecurePort.Tests/bin/Release/SecurePort.Tests.dll" />
+  </Config>
+</NUnitProject>

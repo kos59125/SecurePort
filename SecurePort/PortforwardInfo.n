@@ -1,0 +1,55 @@
+﻿using System.ComponentModel;
+using System.Xml.Serialization;
+
+namespace RecycleBin.SecurePort
+{
+   /// <summary>
+   /// Contains information of portforwarding.
+   /// </summary>
+   [XmlInclude(typeof(LocalForwardingEndPoint))]
+   [XmlInclude(typeof(RemoteForwardingEndPoint))]
+   public abstract class PortforwardInfo
+   {
+   }
+   
+   /// <summary>
+   /// Local forwarding.
+   /// </summary>
+   public class LocalPortforwardInfo : PortforwardInfo
+   {
+      /// <summary>
+      /// Gets or sets the end point of the portforwarding.
+      /// </summary>
+      public LocalListen : ForwardingEndPoint { get; set; }
+      /// <summary>
+      /// Gets or sets the host accessed by remote host.
+      /// </summary>
+      public Destination : ForwardingEndPoint { get; set; }
+   }
+   
+   /// <summary>
+   /// Remote forwarding.
+   /// </summary>
+   public class RemotePortforwardInfo : PortforwardInfo
+   {
+      /// <summary>
+      /// Gets or sets the end point of the portforwarding.
+      /// </summary>
+      public RemoteListen : ForwardingEndPoint { get; set; }
+      /// <summary>
+      /// Gets or sets the host accessed by local client.
+      /// </summary>
+      public Destination : ForwardingEndPoint { get; set; }
+   }
+   
+   /// <summary>
+   /// Dynamic forwarding.
+   /// </summary>
+   public class DynamicPortforwardInfo : PortforwardInfo
+   {
+      /// <summary>
+      /// Gets or sets the end point of the portforwarding.
+      /// </summary>
+      public LocalListen : ForwardingEndPoint { get; set; }
+   }
+}

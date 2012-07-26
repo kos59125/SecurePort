@@ -1,0 +1,43 @@
+﻿using System.ComponentModel;
+using System.Linq;
+using Nemerle.Collections;
+using NUnit.Framework;
+
+namespace RecycleBin.SecurePort
+{
+   [TestFixture]
+   public class SshSettingsTest
+   {
+      [Test]
+      public TestDefaultValue() : void
+      {
+         def settings = SshSettings();
+         Assert.That(settings.Port, Is.EqualTo(22));
+         Assert.That(settings.KeyFile, Is.EqualTo(@"~/.ssh/id_rsa"));
+      }
+      
+      [Test]
+      public TestLoadFile() : void
+      {
+         def settings = SshSettings.LoadFromFile("TestSettings.xml");
+         Assert.That(settings.LoginName, Is.EqualTo("user"));
+         Assert.That(settings.Host, Is.EqualTo("ssh.example.com"));
+         Assert.That(settings.Port, Is.EqualTo(22));
+         Assert.That(settings.KeyFile, Is.EqualTo(@"X:\Path\To\PrivateKeyFile.pem"));
+         Assert.That(settings.ForwardingPorts.Count, Is.EqualTo(3));
+         Assert.That(settings.ForwardingPorts[0].GetType(), Is.EqualTo(typeof(LocalPortforwardInfo)));
+         def local = settings.ForwardingPorts[0] :> LocalPortforwardInfo;
+         Assert.That(local.LocalListen.Port, Is.EqualTo(1234));
+         Assert.That(local.Destination.Host, Is.EqualTo("localhost"));
+         Assert.That(local.Destination.Port, Is.EqualTo(8888));
+         Assert.That(settings.ForwardingPorts[1].GetType(), Is.EqualTo(typeof(DynamicPortforwardInfo)));
+         def dynamic = settings.ForwardingPorts[1] :> DynamicPortforwardInfo;
+         Assert.That(dynamic.LocalListen.Port, Is.EqualTo(18080));
+         Assert.That(settings.ForwardingPorts[2].GetType(), Is.EqualTo(typeof(RemotePortforwardInfo)));
+         def remote = settings.ForwardingPorts[2] :> RemotePortforwardInfo;
+         Assert.That(remote.RemoteListen.Port, Is.EqualTo(3125));
+         Assert.That(remote.Destination.Host, Is.EqualTo("www.example.com"));
+         Assert.That(remote.Destination.Port, Is.EqualTo(80));
+      }
+   }
+}

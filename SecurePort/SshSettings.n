@@ -1,0 +1,73 @@
+﻿using System;
+using System.ComponentModel;
+using System.Collections.Generic;
+using System.Xml.Serialization;
+using Nemerle.Assertions;
+using Nemerle.Utility;
+
+using System.IO.File;
+
+namespace RecycleBin.SecurePort
+{
+   /// <summary>
+   /// SSH connection information.
+   /// </summary>
+   [XmlInclude(typeof(LocalPortforwardInfo))]
+   [XmlInclude(typeof(RemotePortforwardInfo))]
+   [XmlInclude(typeof(DynamicPortforwardInfo))]
+   public class SshSettings
+   {
+      private static SshDefaultPort : int = 22;
+      private static SshDefaultPrivateKey : string = @"~/.ssh/id_rsa";
+      
+      /// <summary>Login name.</summary>
+      public LoginName : string { get; set; }
+      
+      /// <summary>SSH host.</summary>
+      public Host : string { get; set; }
+      
+      /// <summary>SSH port, typically 22.</summary>
+      [DefaultValue(SshDefaultPort)]
+      public Port : int { get; set; }
+      
+      /// <summary>SSH port, typically ~/.ssh/id_rsa on UNIX systems.</summary>
+      [DefaultValue(SshDefaultPrivateKey)]
+      public KeyFile : string { get; set; }
+      
+      [Accessor]
+      private forwardingPorts : List[PortforwardInfo];
+      
+      public this()
+      {
+         forwardingPorts = List();
+         Port = SshDefaultPort;
+         KeyFile = SshDefaultPrivateKey;
+      }
+      
+      /// <summary>
+      /// Loads settings from the specified file.
+      /// </summary>
+      /// <param name="path">The file path to load.</param>
+      public static LoadFromFile([NotNull] path : string) : SshSettings
+      {
+         def serializer = XmlSerializer(typeof(SshSettings));
+         using (stream = OpenRead(path))
+         {
+            serializer.Deserialize(stream) :> SshSettings;
+         }
+      }
+      
+      /// <summary>
+      /// Saves settings to the specified file.
+      /// </summary>
+      /// <param name="path">The file path to save.</param>
+      public Save([NotNull] path : string) : void
+      {
+         def serializer = XmlSerializer(typeof(SshSettings));
+         using (stream = OpenWrite(path))
+         {
+            serializer.Serialize(stream, this);
+         }
+      }
+   }
+}

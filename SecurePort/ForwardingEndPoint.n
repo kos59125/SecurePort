@@ -1,0 +1,98 @@
+﻿using System.ComponentModel;
+using System.Net;
+
+namespace RecycleBin.SecurePort
+{
+   /// <summary>
+   /// Represents an end point of portforwarding.
+   /// </summary>
+   public abstract class ForwardingEndPoint
+   {
+      protected this()
+      {
+      }
+      
+      protected this(port : ushort)
+      {
+         Port = port;
+      }
+      
+      /// <summary>
+      /// Gets the host of the end point.
+      /// </summary>
+      public abstract Host : string { get; }
+      
+      /// <summary>
+      /// Gets the port number of the end point.
+      /// </summary>
+      public Port : ushort { get; set; }
+   }
+   
+   /// <summary>
+   /// Local end point.
+   /// </summary>
+   public class LocalForwardingEndPoint : ForwardingEndPoint
+   {
+      private static Loopback : string = IPAddress.Loopback.ToString();
+      
+      public this()
+      {
+         base();
+      }
+      
+      public this(port : ushort)
+      {
+         base(port);
+      }
+      
+      /// <summary>
+      /// Gets the loopback address.
+      /// </summary>
+      public override Host : string
+      {
+         get { Loopback }
+      }
+   }
+   
+   /// <summary>
+   /// Remote end point.
+   /// </summary>
+   public class RemoteForwardingEndPoint : ForwardingEndPoint
+   {
+      public this()
+      {
+         base();
+      }
+      
+      public this(host : string, port : ushort)
+      {
+         base(port);
+         RemoteHost = host;
+      }
+      
+      public this(endPoint : IPEndPoint)
+      {
+         base(endPoint.Port :> ushort);
+         RemoteHost = endPoint.Address.ToString();
+      }
+      
+      public this(endPoint : DnsEndPoint)
+      {
+         base(endPoint.Port :> ushort);
+         RemoteHost = endPoint.Host;
+      }
+      
+      /// <summary>
+      /// Gets the <see cref="RemoteHost" />.
+      /// </summary>
+      public override Host : string
+      {
+         get { RemoteHost; }
+      }
+      
+      /// <summary>
+      /// Gets or sets the host of the end point.
+      /// </summary>
+      public RemoteHost : string { get; set; }
+   }
+}

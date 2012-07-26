@@ -1,0 +1,51 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using System.Linq.Enumerable;
+using System.Net.NetworkInformation.IPGlobalProperties;
+
+namespace RecycleBin.SecurePort
+{
+   /// <summary>
+   /// Utility functions for TCP ports.
+   /// </summary>
+   public module PortUtility
+   {
+      /// <summary>
+      /// Gets the list of free port numbers.
+      /// </summary>
+      /// <param name="type">The port type to get.</param>
+      public GetFreeTcpPortNumbers(type : PortType) : IEnumerable[int]
+      {
+         def activePorts = GetIPGlobalProperties().GetActiveTcpConnections().Select(c => c.LocalEndPoint.Port);
+         GetPortNumbers(type).Except(activePorts);
+      }
+      
+      /// <summary>
+      /// Gets the list of port numbers.
+      /// </summary>
+      /// <param name="type">The port type to get.</param>
+      public GetPortNumbers(type : PortType) : IEnumerable[int]
+      {
+         def wellknown = if (type.HasFlag(PortType.WellKnown)) Range(0, 1024) else Empty();
+         def registered = if (type.HasFlag(PortType.Registered)) Range(1024, 49152 - 1024) else Empty();
+         def dynamic = if (type.HasFlag(PortType.Dynamic)) Range(49152, 65536 - 49152) else Empty();
+         wellknown.Concat(registered).Concat(dynamic);
+      }
+   }
+   
+   /// <summary>
+   /// List of port types.
+   /// </summary>
+   [Flags]
+   public enum PortType
+   {
+      /// <summary>From 0 through 1023.</summary>
+      | WellKnown = 0b1
+      /// <summary>From 1024 through 49151.</summary>
+      | Registered = 0b10
+      /// <summary>From 49152 through 65535.</summary>
+      | Dynamic = 0b100
+   }
+}
